@@ -1,0 +1,81 @@
+-- show first name and last name of patients that weight within the range of 100 to 120 (inclusive) -- 
+SELECT first_name, last_name
+FROM patients
+WHERE weight between 100 and 120;
+
+-- Show first name, last name, and the full province name of each patient. -- 
+
+SELECT first_name, last_name, province_name
+FROM patients
+join provinces ON patients.province_id = provinces.province_id
+
+-- Show patient_id and first_name from patients where their first_name start and ends with 's' and is at least 6 characters long.
+
+SELECT patient_id, first_name
+FROM patients
+WHERE first_name LIKE 's%s' AND len(first_name) >= 6;
+
+-- Show patient_id, first_name, last_name from patients whos primary_diagnosis is 'Dementia'.
+
+SELECT patients.patient_id, first_name, last_name
+FROM patients
+JOIN admissions on admissions.patient_id = patients.patient_id
+WHERE primary_diagnosis = 'Dementia'
+
+-- Show patient_id, attending_physician_id, and primary_diagnosis for admissions that match one of the two criteria:
+-- 1. patient_id is an odd number and attending_physician_id is either 1, 5, or 19.
+-- 2. attending_physician_id contains a 2 and the length of patient_id is 3 characters.
+SELECT
+  patient_id,
+  attending_physician_id,
+  primary_diagnosis
+FROM admissions
+WHERE
+  (
+    attending_physician_id IN (1, 5, 19)
+    AND patient_id % 2 != 0
+  )
+  OR 
+  (
+    attending_physician_id LIKE '%2%'
+    AND len(patient_id) = 3
+  )
+  
+  -- Show the nursing_unit_id and count of admissions for each nursing_unit_id. Exclude the following nursing_unit_ids: 'CCU', 'OR', 'ICU', 'ER'.
+  
+SELECT nursing_unit_id, COUNT(admission_date)
+FROM admissions
+WHERE nursing_unit_id NOT IN ('CCU', 'OR', 'ICU', 'ER')
+GROUP BY nursing_unit_id
+
+-- Show all of the month's day numbers and how many admission_dates occurred on that number. Sort by the day with most admissions to least admissions.
+
+SELECT COUNT(patient_id) AS numb_of_adm, DAY(admission_date) as adm_day
+from admissions
+GROUP BY adm_day 
+ORDER BY numb_of_adm DESC
+
+-- Show the province_id(s), sum of height; where the total sum of its patient's height is greater than or equal to 7,000.
+
+SELECT province_id, SUM(height) as total_height
+from patients
+GROUP by province_id
+HAVING total_height >= 7000
+
+-- Show all allergies ordered by popularity. Remove 'NKA' and NULL values from query.
+
+SELECT allergies, COUNT(patient_id) as total_diag
+from patients
+WHERE NOT allergies = 'NKA' and allergies IS NOT NULL
+Group BY allergies 
+order by total_diag desc
+
+-- Show first name, last name and role of every person that is either patient or physician.
+-- The roles are either "Patient" or "Physician"
+
+SELECT first_name, last_name, "Patient" As Role
+from patients
+UNION
+SELECT first_name, last_name, "Physician" as Role
+from physicians;
+
